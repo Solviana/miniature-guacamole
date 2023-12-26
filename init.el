@@ -1,3 +1,14 @@
+;;; init.el --- an ugly emacs config by Solviana
+;;; Commentary:
+;;; Dependencies to be installed from apt:
+;;; fd-find (for projectile)
+;;; pylint (for flymake)
+;;; silversearcher-ag (for projectile)
+;;; ripgrep (for projectile)
+;;; elpa-elpy (for elpy)
+;;; Dependencies to be installed from pip:
+;;; jedi flake8 autopep8 yapf black
+;;; Code:
 (setq inhibit-startup-screen t)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
@@ -5,10 +16,13 @@
 (set-face-attribute 'default nil :font "Monospace-10")
 (global-display-line-numbers-mode)
 (show-paren-mode)
+(setq indent-tabs-mode nil)
+(setq-default cmake-tab-width 4)
 (setq-default truncate-lines t)
-(set-face-attribute 'default nil :height 160)
+(set-face-attribute 'default nil :height 130)
 (fset 'yes-or-no-p 'y-or-n-p)
-
+(setq-default c-basic-offset 4)
+(setq require-final-newline t)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -17,7 +31,9 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))))
+    (ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode)))
+ '(python-flymake-command (quote ("pylint")))
+ '(require-final-newline t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -70,6 +86,29 @@
 (global-set-key (kbd "C-c c") 'copy-symbol-at-point)
 (global-set-key (kbd "C-c s") 'swiper-isearch-thing-at-point)
 
+;; window manipulation
+
+(defun resize-window-horizontally (direction)
+    "Resize the window horizontally.
+DIRECTION should be 1 to increase width, -1 to decrease."
+    (interactive)
+    (let ((npixels (if (eq direction -1) -5 5)))
+      (if (window-resizable (selected-window) npixels 1)
+	  (adjust-window-trailing-edge (selected-window) npixels 1))))
+
+(defun my-resize-window-right ()
+  "Increase the width of the current window by 10 pixels."
+  (interactive)
+  (resize-window-horizontally 1))
+
+(defun my-resize-window-left ()
+  "Decrease the width of the current window by 10 pixels."
+  (interactive)
+  (resize-window-horizontally -1))
+
+(global-set-key (kbd "M-<right>") 'my-resize-window-right)
+(global-set-key (kbd "M-<left>") 'my-resize-window-left)
+
 ;; Web browsing & search
 (use-package eww
   :bind (("C-c w" . eww)) ; This sets a global key binding for EWW.
@@ -80,20 +119,28 @@
 ;; projectile for project management
 (use-package projectile
   :ensure t
+					;  :requires counsel
+  :after counsel
   :diminish projectile-mode
   :config
-  (setq projectile-project-search-path '("~/" "~/proj"))
+  (setq projectile-project-search-path '("~/" "~/repos"))
   (setq projectile-enable-caching t)
+; force indexing for gitignored folders (build, package caches etc...)
+; this works only if fdfind is installed
+  (setq-default projectile-git-fd-args "-H -0 --strip-cwd-prefix --no-ignore -E .git -tf -c never")
   (projectile-mode +1)
   :bind (("C-c p p"   . projectile-switch-project)
             ("C-c p f"   . projectile-find-file)
             ("C-c p s g" . projectile-grep)
             ("C-c p s r" . projectile-ripgrep)
+	    ("C-c p s s" . projectile-ag)
             ("C-c p d"   . projectile-dired)
             ("C-c p c"   . projectile-compile-project)
             ("C-c p C"   . projectile-configure-project)
             ("C-c p u"   . projectile-run-project)
 	    ("C-c p t"   . projectile-test-project)
+	    ("C-c p r"   . projectile-find-references)
+	    ("C-c p k"   . projectile-kill-buffers)
 	    ("C-c p i"   . projectile-invalidate-cache)))
 
 ;; ripgrep for searching
@@ -103,6 +150,7 @@
 ;; ivy for autocompletion
 (use-package counsel
   :ensure t
+  :demand t
   :config
   (setq ivy-use-virtual-buffers t)
   (setq ivy-count-format "(%d/%d)")
@@ -149,7 +197,9 @@
   (setq which-key-idle-delay 0.5))
 
 ;; Org
-
+(use-package yaml-mode
+  :ensure t
+  :mode ("\\.yaml\\'"))
 ;; Generic sw development packages
 (use-package company
   :ensure t
@@ -229,17 +279,18 @@
 (use-package elpy
   :ensure t
   :init
-;  (elpy-enable)
+  (elpy-enable)
   :config
-;  (setq elpy-rpc-python-command "python3")  ;; use python3
-;  (setq python-shell-interpreter "python3") ;; use python3
+  (setq flycheck-flake8-maximum-line-length 120)
+  (remove-hook 'elpy-modules 'elpy-module-highlight-indentation) ; who thought this abberation is useful???
+  (remove-hook 'elpy-modules 'elpy-module-flymake) ; might re-enable later if i figure out how to configure this...
 )
 
-;(use-package company-jedi
-;  :ensure t
-;  :config
-;  (add-to-list 'company-backends 'company-jedi)
-;)
+(use-package company-jedi
+  :ensure t
+  :config
+  (add-to-list 'company-backends 'company-jedi)
+)
 
 (use-package anaconda-mode
   :ensure t
