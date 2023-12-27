@@ -6,6 +6,7 @@
 ;;; silversearcher-ag (for projectile)
 ;;; ripgrep (for projectile)
 ;;; elpa-elpy (for elpy)
+;;; ccls
 ;;; Dependencies to be installed from pip:
 ;;; jedi flake8 autopep8 yapf black
 ;;; Code:
@@ -30,10 +31,13 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   (quote
-    (ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode)))
- '(python-flymake-command (quote ("pylint")))
- '(require-final-newline t))
+   '(treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
+ '(python-flymake-command '("pylint"))
+ '(require-final-newline t)
+ '(safe-local-variable-values
+   '((vc-prepare-patches-separately)
+     (diff-add-log-use-relative-names . t)
+     (vc-git-annotate-switches . "-w"))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -218,13 +222,14 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   :ensure t
   :mode ("CMakeLists\\.txt\\'" "\\.cmake\\'"))
 
-;; Rust development
-;; thanks https://robert.kra.hn/posts/rust-emacs-setup/
-;;(use-package rust-mode
-;;  :ensure t
-;;  :config
-;;  (add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode)))
+(use-package ccls
+  :ensure t
+  :hook
+  ((c-mode c++-mode objc-mode cuda-mode) . (lambda () (require 'ccls) (lsp)))
+  :config
+  (setq ccls-executable "/usr/bin/ccls"))
 
+;; Rust
 (use-package rustic
   :ensure
   :bind (:map rustic-mode-map
@@ -272,10 +277,7 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   (lsp-ui-sideline-show-hover t)
   (lsp-ui-doc-enable nil))
 
-;; python
-;; DEPENDENCIES:
-;; pip install jedi flake8 autopep8 yapf black
-;; elpy might have to be installed from apt. package is elpa-elpy
+;; Python
 (use-package elpy
   :ensure t
   :init
