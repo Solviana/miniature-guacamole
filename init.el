@@ -147,6 +147,23 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 	    ("C-c p k"   . projectile-kill-buffers)
 	    ("C-c p i"   . projectile-invalidate-cache)))
 
+(use-package treemacs
+  :ensure t
+  :defer t
+  :bind
+  (:map global-map
+        ("M-0"       . treemacs-select-window)
+        ("C-c t 1"   . treemacs-delete-other-windows)
+        ("C-c t t"   . treemacs)
+        ("C-c t d"   . treemacs-select-directory)
+        ("C-c t B"   . treemacs-bookmark)
+        ("C-c t C-t" . treemacs-find-file)
+        ("C-c t M-t" . treemacs-find-tag)))
+
+(use-package treemacs-projectile
+  :after (treemacs projectile)
+  :ensure t)
+
 ;; ripgrep for searching
 (use-package rg
   :ensure t)
