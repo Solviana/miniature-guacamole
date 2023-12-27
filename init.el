@@ -215,7 +215,7 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   :ensure t
   :config
   (which-key-mode)
-  (setq which-key-idle-delay 0.5))
+  (setq which-key-idle-delay 0.1))
 
 ;; Org
 (use-package yaml-mode
@@ -270,6 +270,11 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 (use-package lsp-mode
   :ensure
   :commands lsp
+  :hook
+  (lsp-mode . (lambda ()
+                (let ((lsp-keymap-prefix "C-c l"))
+                  (lsp-enable-which-key-integration))))
+  (lsp-mode . lsp-ui-mode)
   :custom
   ;; what to use when checking on-save. "check" is default, I prefer clippy
   (lsp-rust-analyzer-cargo-watch-command "clippy")
@@ -284,7 +289,8 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   (lsp-rust-analyzer-display-parameter-hints nil)
   (lsp-rust-analyzer-display-reborrow-hints nil)
   :config
-  (add-hook 'lsp-mode-hook 'lsp-ui-mode));(add-hook 'lsp-mode-hook 'lsp-ui-mode))
+  (define-key lsp-mode-map (kbd "M-l") lsp-command-map)
+  (keymap-set lsp-mode-map "C-c ?" 'lsp-ui-peek-find-references))
 
 (use-package lsp-ui
   :ensure
