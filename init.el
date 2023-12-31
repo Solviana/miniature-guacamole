@@ -31,7 +31,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
+   '(yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
  '(python-flymake-command '("pylint"))
  '(require-final-newline t)
  '(safe-local-variable-values
@@ -267,39 +267,6 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   ;; comment to disable rustfmt on save
   (setq rustic-format-on-save t))
 
-(use-package lsp-mode
-  :ensure
-  :commands lsp
-  :hook
-  (lsp-mode . (lambda ()
-                (let ((lsp-keymap-prefix "C-c l"))
-                  (lsp-enable-which-key-integration))))
-  (lsp-mode . lsp-ui-mode)
-  :custom
-  ;; what to use when checking on-save. "check" is default, I prefer clippy
-  (lsp-rust-analyzer-cargo-watch-command "clippy")
-  (lsp-eldoc-render-all t)
-  (lsp-idle-delay 0.6)
-  ;; enable / disable the hints as you prefer:
-  (lsp-rust-analyzer-server-display-inlay-hints t)
-  (lsp-rust-analyzer-display-lifetime-elision-hints-enable "skip_trivial")
-  (lsp-rust-analyzer-display-chaining-hints t)
-  (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names nil)
-  (lsp-rust-analyzer-display-closure-return-type-hints t)
-  (lsp-rust-analyzer-display-parameter-hints nil)
-  (lsp-rust-analyzer-display-reborrow-hints nil)
-  :config
-  (define-key lsp-mode-map (kbd "M-l") lsp-command-map)
-  (keymap-set lsp-mode-map "C-c ?" 'lsp-ui-peek-find-references))
-
-(use-package lsp-ui
-  :ensure
-  :commands lsp-ui-mode
-  :custom
-  (lsp-ui-peek-always-show t)
-  (lsp-ui-sideline-show-hover t)
-  (lsp-ui-doc-enable nil))
-
 ;; Python
 (use-package elpy
   :ensure t
@@ -322,3 +289,48 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   :hook ((python-mode . anaconda-mode)
          (python-mode . anaconda-eldoc-mode)))
 
+;; LSP and Snippets
+(use-package lsp-mode
+  :ensure t
+  :commands lsp
+  :hook
+  (lsp-mode . (lambda ()
+                (let ((lsp-keymap-prefix "M-l"))
+                  (lsp-enable-which-key-integration))))
+  (lsp-mode . lsp-ui-mode)
+  :custom
+  ;; what to use when checking on-save. "check" is default, I prefer clippy
+  (lsp-rust-analyzer-cargo-watch-command "clippy")
+  (lsp-eldoc-render-all t)
+  (lsp-idle-delay 0.6)
+  ;; enable / disable the hints as you prefer:
+  (lsp-rust-analyzer-server-display-inlay-hints t)
+  (lsp-rust-analyzer-display-lifetime-elision-hints-enable "skip_trivial")
+  (lsp-rust-analyzer-display-chaining-hints t)
+  (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names nil)
+  (lsp-rust-analyzer-display-closure-return-type-hints t)
+  (lsp-rust-analyzer-display-parameter-hints nil)
+  (lsp-rust-analyzer-display-reborrow-hints nil)
+  :config
+  (define-key lsp-mode-map (kbd "M-l") lsp-command-map)
+  (keymap-set lsp-mode-map "C-c ?" 'lsp-ui-peek-find-references))
+
+(use-package lsp-ui
+  :ensure t
+  :commands lsp-ui-mode
+  :custom
+  (lsp-ui-peek-always-show t)
+  (lsp-ui-sideline-show-hover t)
+  (lsp-ui-doc-enable nil))
+
+(use-package yasnippet
+  :ensure t
+  :hook
+  ((c-mode c++-mode python-mode) . yas-minor-mode))
+
+(use-package yasnippet-snippets
+  :ensure t
+  :after yasnippet)
+
+(provide 'init)
+;;; init.el ends here
