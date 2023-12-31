@@ -31,7 +31,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
+   '(virtualenvwrapper eshell-prompt-extras yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
  '(python-flymake-command '("pylint"))
  '(require-final-newline t)
  '(safe-local-variable-values
@@ -194,9 +194,17 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   (require 'smartparens-config) ; default config
   (smartparens-global-mode 1)
   (show-smartparens-global-mode 1)
-  (setq sp-show-pair-delay 0
+  (setq sp-show-pair-delay 0.1
         sp-show-pair-from-inside t
         sp-cancel-autoskip-on-backward-movement nil))
+
+(use-package whitespace
+  :ensure t
+  :diminish global-whitespace-mode
+  :custom
+  (whitespace-style '(face tabs trailing space-before-tab space-after-tab empty indentation::space))
+  :config
+  (global-whitespace-mode))
 
 (use-package ace-window
   :ensure t
@@ -331,6 +339,18 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 (use-package yasnippet-snippets
   :ensure t
   :after yasnippet)
+
+;; Shell improvements
+(use-package eshell-prompt-extras
+  :ensure t
+  :config
+  (with-eval-after-load "esh-opt"
+    ;; Load eshell-prompt-extras
+    (require 'virtualenvwrapper)
+    (autoload 'epe-theme-multiline-with-status "eshell-prompt-extras")
+    ;; Set the prompt to use epe-theme, you can change the theme as desired
+    (setq eshell-highlight-prompt nil
+          eshell-prompt-function 'epe-theme-multiline-with-status)))
 
 (provide 'init)
 ;;; init.el ends here
