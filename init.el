@@ -31,7 +31,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(virtualenvwrapper eshell-prompt-extras yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
+   '(expand-region virtualenvwrapper eshell-prompt-extras yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
  '(python-flymake-command '("pylint"))
  '(require-final-newline t)
  '(safe-local-variable-values
@@ -71,15 +71,6 @@
   :config
   (load-theme 'monokai t))
 
-(defun mark-symbol-at-point ()
-  "Mark the entire symbol around the point."
-  (interactive)
-  (let ((bounds (bounds-of-thing-at-point 'symbol)))
-    (when bounds
-      (goto-char (car bounds))
-      (push-mark (cdr bounds) nil t))))
-(global-set-key (kbd "C-c m") 'mark-symbol-at-point)
-
 (defun copy-symbol-at-point ()
   "Copy the symbol at point to the clipboard."
   (interactive)
@@ -112,6 +103,9 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 
 (global-set-key (kbd "C-M-<right>") 'my-resize-window-right)
 (global-set-key (kbd "C-M-<left>") 'my-resize-window-left)
+
+(use-package expand-region
+  :bind ("C-c m" . er/expand-region))
 
 ;; Web browsing & search
 (use-package eww
