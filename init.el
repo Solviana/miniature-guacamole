@@ -110,8 +110,8 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   (interactive)
   (resize-window-horizontally -1))
 
-(global-set-key (kbd "M-<right>") 'my-resize-window-right)
-(global-set-key (kbd "M-<left>") 'my-resize-window-left)
+(global-set-key (kbd "C-M-<right>") 'my-resize-window-right)
+(global-set-key (kbd "C-M-<left>") 'my-resize-window-left)
 
 ;; Web browsing & search
 (use-package eww
@@ -217,13 +217,16 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 
 (use-package magit
   :ensure t
-  )
+  :config
+  ; we can remove the build in vc tool
+  (keymap-global-unset "C-x v"))
 
 (use-package which-key
   :ensure t
   :config
   (which-key-mode)
-  (setq which-key-idle-delay 0.1))
+  (setq which-key-idle-delay 0.1)
+  (setq which-key-side-window-max-height 0.33))
 
 ;; Org
 (use-package yaml-mode
