@@ -31,7 +31,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(expand-region virtualenvwrapper eshell-prompt-extras yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
+   '(gptel expand-region virtualenvwrapper eshell-prompt-extras yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
  '(python-flymake-command '("pylint"))
  '(require-final-newline t)
  '(safe-local-variable-values
@@ -146,7 +146,6 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   :defer t
   :bind
   (:map global-map
-        ("M-0"       . treemacs-select-window)
         ("C-c t 1"   . treemacs-delete-other-windows)
         ("C-c t t"   . treemacs)
         ("C-c t d"   . treemacs-select-directory)
@@ -220,7 +219,11 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   :config
   (which-key-mode)
   (setq which-key-idle-delay 0.1)
-  (setq which-key-side-window-max-height 0.33))
+  (setq which-key-side-window-max-height 0.33)
+  (which-key-add-key-based-replacements "C-c p" "projectile")
+  (which-key-add-key-based-replacements "C-c t" "treemacs")
+  (which-key-add-key-based-replacements "C-c !" "linter")
+  (which-key-add-key-based-replacements "C-c g" "ChatGPT"))
 
 ;; Org
 (use-package yaml-mode
@@ -348,6 +351,17 @@ DIRECTION should be 1 to increase width, -1 to decrease."
     ;; Set the prompt to use epe-theme, you can change the theme as desired
     (setq eshell-highlight-prompt nil
           eshell-prompt-function 'epe-theme-multiline-with-status)))
+
+;; AI chatbots
+(use-package gptel
+  :ensure t
+  :custom
+  (gptel-model "gpt-4-1106-preview")
+  :bind
+  (("C-c g t" . gptel)
+   ("C-c g s" . gptel-send)
+   ("C-c g m" . gptel-menu)
+   ("C-c g a" . gptel-abort)))
 
 (provide 'init)
 ;;; init.el ends here
