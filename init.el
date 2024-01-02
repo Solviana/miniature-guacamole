@@ -17,6 +17,7 @@
 (set-face-attribute 'default nil :font "Monospace-10")
 (global-display-line-numbers-mode)
 (show-paren-mode)
+(display-time-mode)
 (setq indent-tabs-mode nil)
 (setq-default cmake-tab-width 4)
 (setq-default truncate-lines t)
@@ -65,11 +66,19 @@
 (require 'bind-key)
 (setq use-package-always-ensure t)
 
-;; Configure Monokai theme using use-package
+;; UI improvements
 (use-package monokai-theme
   :ensure t
   :config
   (load-theme 'monokai t))
+
+(use-package dimmer
+  :ensure t
+  :config
+  (dimmer-configure-which-key)
+  (dimmer-configure-helm)
+  (dimmer-mode t)
+  (setq dimmer-fraction 0.35))
 
 (defun copy-symbol-at-point ()
   "Copy the symbol at point to the clipboard."
@@ -89,7 +98,7 @@ DIRECTION should be 1 to increase width, -1 to decrease."
     (interactive)
     (let ((npixels (if (eq direction -1) -5 5)))
       (if (window-resizable (selected-window) npixels 1)
-	  (adjust-window-trailing-edge (selected-window) npixels 1))))
+          (adjust-window-trailing-edge (selected-window) npixels 1))))
 
 (defun my-resize-window-right ()
   "Increase the width of the current window by 10 pixels."
@@ -117,7 +126,7 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 ;; projectile for project management
 (use-package projectile
   :ensure t
-					;  :requires counsel
+                                        ;  :requires counsel
   :after counsel
   :diminish projectile-mode
   :config
@@ -131,15 +140,15 @@ DIRECTION should be 1 to increase width, -1 to decrease."
             ("C-c p f"   . projectile-find-file)
             ("C-c p s g" . projectile-grep)
             ("C-c p s r" . projectile-ripgrep)
-	    ("C-c p s s" . projectile-ag)
+            ("C-c p s s" . projectile-ag)
             ("C-c p d"   . projectile-dired)
             ("C-c p c"   . projectile-compile-project)
             ("C-c p C"   . projectile-configure-project)
             ("C-c p u"   . projectile-run-project)
-	    ("C-c p t"   . projectile-test-project)
-	    ("C-c p r"   . projectile-find-references)
-	    ("C-c p k"   . projectile-kill-buffers)
-	    ("C-c p i"   . projectile-invalidate-cache)))
+            ("C-c p t"   . projectile-test-project)
+            ("C-c p r"   . projectile-find-references)
+            ("C-c p k"   . projectile-kill-buffers)
+            ("C-c p i"   . projectile-invalidate-cache)))
 
 (use-package treemacs
   :ensure t
@@ -176,8 +185,8 @@ DIRECTION should be 1 to increase width, -1 to decrease."
             ("C-x b"   . ivy-switch-buffer)
             ("C-c v"   . ivy-push-view)
             ("C-c V"   . ivy-pop-view)
-	    ("C-h f"   . counsel-describe-function)
-	    ("C-h v"   . counsel-describe-variable)))
+            ("C-h f"   . counsel-describe-function)
+            ("C-h v"   . counsel-describe-variable)))
 
 ;; for pair management e.g. quotes, parentheses
 (use-package smartparens
@@ -216,6 +225,7 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 
 (use-package which-key
   :ensure t
+  :demand t
   :config
   (which-key-mode)
   (setq which-key-idle-delay 0.1)
@@ -223,7 +233,8 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   (which-key-add-key-based-replacements "C-c p" "projectile")
   (which-key-add-key-based-replacements "C-c t" "treemacs")
   (which-key-add-key-based-replacements "C-c !" "linter")
-  (which-key-add-key-based-replacements "C-c g" "ChatGPT"))
+  (which-key-add-key-based-replacements "C-c g" "ChatGPT")
+  (which-key-add-key-based-replacements "C-x n" "narrow"))
 
 ;; Org
 (use-package yaml-mode
@@ -352,16 +363,34 @@ DIRECTION should be 1 to increase width, -1 to decrease."
     (setq eshell-highlight-prompt nil
           eshell-prompt-function 'epe-theme-multiline-with-status)))
 
+(defcustom gptel-maximum-column-width 130
+  "Maximum width of chatgpt responses."
+  :type 'integer
+  :group 'gptel)
+
 ;; AI chatbots
 (use-package gptel
   :ensure t
   :custom
-  (gptel-model "gpt-4-1106-preview")
+  (gptel-model "gpt-3.5-turbo")
   :bind
   (("C-c g t" . gptel)
    ("C-c g s" . gptel-send)
    ("C-c g m" . gptel-menu)
-   ("C-c g a" . gptel-abort)))
+   ("C-c g a" . gptel-abort))
+  :config
+  (defun insert-newline-on-max-column-width (str buffer)
+    (cl-loop for char across str for column from 0
+             concat (string char)
+             when (= char 10) ; newlines
+             do (setq column 0)
+             else
+             when (and (= char 32) ; only start a new line after a space
+                       (>= column gptel-maximum-column-width))
+             concat "\n" and do (setq column 0)))
+  (add-to-list 'gptel-response-filter-functions 'insert-newline-on-max-column-width)
+  ; streaming of responses is disabled
+  (setq gptel-stream nil))
 
 (provide 'init)
 ;;; init.el ends here
