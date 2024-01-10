@@ -1,0 +1,15 @@
+*#
+.cache/
+*~*
+auto-save-list/
+elpa/
+elpy/
+eshell/
+*.eld
+*.cache
+*.log
+projects
+recentf
+transient/
+anaconda-mode/
+.lsp*
