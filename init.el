@@ -25,6 +25,8 @@
 (fset 'yes-or-no-p 'y-or-n-p)
 (setq-default c-basic-offset 4)
 (setq require-final-newline t)
+(setq initial-major-mode 'org-mode)
+(winner-mode)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -236,7 +238,23 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   (which-key-add-key-based-replacements "C-c g" "ChatGPT")
   (which-key-add-key-based-replacements "C-x n" "narrow"))
 
-;; Org
+;; Org-mode setup
+(use-package org
+  :ensure t
+  :config
+  (require 'ox-latex))
+
+(use-package org-contrib
+  :ensure t
+  :config
+  (require 'ox-extra)
+  (ox-extras-activate '(latex-header-blocks ignore-headlines)))
+
+;; LaTeX and PDF export setup with AUCTeX
+(use-package auctex
+  :ensure t
+  :defer t)
+
 (use-package yaml-mode
   :ensure t
   :mode ("\\.yaml\\'"))
@@ -363,7 +381,7 @@ DIRECTION should be 1 to increase width, -1 to decrease."
     (setq eshell-highlight-prompt nil
           eshell-prompt-function 'epe-theme-multiline-with-status)))
 
-(defcustom gptel-maximum-column-width 130
+(defcustom gptel-maximum-column-width 100
   "Maximum width of chatgpt responses."
   :type 'integer
   :group 'gptel)
@@ -389,7 +407,7 @@ DIRECTION should be 1 to increase width, -1 to decrease."
                        (>= column gptel-maximum-column-width))
              concat "\n" and do (setq column 0)))
   (add-to-list 'gptel-response-filter-functions 'insert-newline-on-max-column-width)
-  ; streaming of responses is disabled
+  ; streamed responses do not apply filter functions -> disable them
   (setq gptel-stream nil))
 
 (provide 'init)
