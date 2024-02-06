@@ -21,11 +21,12 @@
 (setq indent-tabs-mode nil)
 (setq-default cmake-tab-width 4)
 (setq-default truncate-lines t)
-(set-face-attribute 'default nil :height 130)
+(set-face-attribute 'default nil :height 160)
 (fset 'yes-or-no-p 'y-or-n-p)
 (setq-default c-basic-offset 4)
 (setq require-final-newline t)
 (setq initial-major-mode 'org-mode)
+(setq tab-always-indent 'complete)
 (winner-mode)
 
 (custom-set-variables
@@ -200,7 +201,29 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   (show-smartparens-global-mode 1)
   (setq sp-show-pair-delay 0.1
         sp-show-pair-from-inside t
-        sp-cancel-autoskip-on-backward-movement nil))
+        sp-cancel-autoskip-on-backward-movement nil)
+  (defun is-pair (char)
+    "ROOM FOR IMPROVEMENT checks if char is a pair. Optimal way to do this would be with smartparens"
+    (let ((pair-list '("[" "]" "{" "}" "(" ")" "\"")))
+      (seq-contains-p pair-list (string char))))
+  (defun beginning-of-sexp-or-defun ()
+    "Jumps to matching pair if the thing at point is a pair, to the begining of the function otherwise"
+    (interactive)
+    (if (is-pair (preceding-char))
+	(progn (sp-beginning-of-sexp)
+	       (message "sexp"))
+      (progn (message "%s" (preceding-char))
+        (beginning-of-defun)
+             (message "defun"))))
+  (defun end-of-sexp-or-defun ()
+    "Jumps to matching pair if the thing at point is a pair, to the begining of the function otherwise"
+    (interactive)
+    (if (is-pair (preceding-char))
+	(sp-end-of-sexp)
+      (end-of-defun)))
+  :bind (("C-M-a" . beginning-of-sexp-or-defun)
+	 ("C-M-e" . end-of-sexp-or-defun))
+  )
 
 (use-package whitespace
   :ensure t
@@ -212,7 +235,8 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 
 (use-package ace-window
   :ensure t
-  :bind (("C-x o" . ace-window)))
+  :bind (("C-x o" . ace-window)
+	 ("C-x C-o" . ace-swap-window)))
 
 (use-package undo-tree
   :bind (("C-x u" . undo-tree-visualize)) ;; Set a keybinding for undo-tree-visualize
