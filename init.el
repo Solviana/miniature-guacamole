@@ -239,7 +239,7 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   (setq which-key-side-window-max-height 0.33)
   (which-key-add-key-based-replacements "C-c p" "projectile")
   (which-key-add-key-based-replacements "C-c t" "treemacs")
-  (which-key-add-key-based-replacements "C-c !" "linter")
+  (which-key-add-keymap-based-replacements prog-mode-map "C-c !" "linter")
   (which-key-add-key-based-replacements "C-c g" "ChatGPT")
   (which-key-add-key-based-replacements "C-x n" "narrow"))
 
