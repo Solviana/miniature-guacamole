@@ -202,28 +202,9 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   (setq sp-show-pair-delay 0.1
         sp-show-pair-from-inside t
         sp-cancel-autoskip-on-backward-movement nil)
-  (defun is-pair (char)
-    "ROOM FOR IMPROVEMENT checks if char is a pair. Optimal way to do this would be with smartparens"
-    (let ((pair-list '("[" "]" "{" "}" "(" ")" "\"")))
-      (seq-contains-p pair-list (string char))))
-  (defun beginning-of-sexp-or-defun ()
-    "Jumps to matching pair if the thing at point is a pair, to the begining of the function otherwise"
-    (interactive)
-    (if (is-pair (preceding-char))
-	(progn (sp-beginning-of-sexp)
-	       (message "sexp"))
-      (progn (message "%s" (preceding-char))
-        (beginning-of-defun)
-             (message "defun"))))
-  (defun end-of-sexp-or-defun ()
-    "Jumps to matching pair if the thing at point is a pair, to the begining of the function otherwise"
-    (interactive)
-    (if (is-pair (preceding-char))
-	(sp-end-of-sexp)
-      (end-of-defun)))
-  :bind (("C-M-a" . beginning-of-sexp-or-defun)
-	 ("C-M-e" . end-of-sexp-or-defun))
-  )
+  :bind (:map prog-mode-map
+                ("M-<right>" . sp-forward-slurp-sexp)
+                ("M-<left>" . sp-forward-barf-sexp)))
 
 (use-package whitespace
   :ensure t
@@ -414,7 +395,7 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 (use-package gptel
   :ensure t
   :custom
-  (gptel-model "gpt-3.5-turbo")
+  (gptel-model "gpt-4-1106-preview")
   :bind
   (("C-c g t" . gptel)
    ("C-c g s" . gptel-send)
