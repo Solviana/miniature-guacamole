@@ -238,6 +238,7 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   (setq which-key-idle-delay 0.1)
   (setq which-key-side-window-max-height 0.33)
   (which-key-add-key-based-replacements "C-c p" "projectile")
+  (which-key-add-key-based-replacements "C-c a" "org-agenda")
   (which-key-add-key-based-replacements "C-c t" "treemacs")
   (which-key-add-keymap-based-replacements prog-mode-map "C-c !" "linter")
   (which-key-add-key-based-replacements "C-c g" "ChatGPT")
@@ -246,8 +247,31 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 ;; Org-mode setup
 (use-package org
   :ensure t
+  :bind (("C-c a o" . org-agenda))
   :config
-  (require 'ox-latex))
+  (require 'ox-latex)
+  (setq org-clock-persist 'history)
+  (org-clock-persistence-insinuate)
+  (defun org-sum-subtask-effort ()
+  "Sum the efforts of all subtasks and set the effort of the parent task."
+  (interactive)
+  (save-excursion
+    (when (org-before-first-heading-p) (error "Not inside a heading"))
+    (let ((total-minutes 0))
+      (org-up-heading-safe)
+      (org-map-entries
+       (lambda ()
+         (let ((effort (org-entry-get nil "Effort")))
+           (when effort
+             (let ((minutes (org-duration-to-minutes effort)))
+               (setq total-minutes (+ total-minutes minutes))))))
+       "Effort>\"\"" 'tree)
+      (org-set-property "Effort"
+                        (org-minutes-to-clocksum-string total-minutes)))))
+  :custom
+  (org-agenda-files '("~/proj/todo"))
+  (org-agenda-window-setup 'only-window)
+  (org-agenda-restore-windows-after-quit t))
 
 (use-package org-contrib
   :ensure t
@@ -401,19 +425,7 @@ DIRECTION should be 1 to increase width, -1 to decrease."
    ("C-c g s" . gptel-send)
    ("C-c g m" . gptel-menu)
    ("C-c g a" . gptel-abort))
-  :config
-  (defun insert-newline-on-max-column-width (str buffer)
-    (cl-loop for char across str for column from 0
-             concat (string char)
-             when (= char 10) ; newlines
-             do (setq column 0)
-             else
-             when (and (= char 32) ; only start a new line after a space
-                       (>= column gptel-maximum-column-width))
-             concat "\n" and do (setq column 0)))
-  (add-to-list 'gptel-response-filter-functions 'insert-newline-on-max-column-width)
-  ; streamed responses do not apply filter functions -> disable them
-  (setq gptel-stream nil))
+  :config)
 
 (provide 'init)
 ;;; init.el ends here
