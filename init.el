@@ -6,7 +6,7 @@
 ;;; silversearcher-ag (for projectile)
 ;;; ripgrep (for projectile)
 ;;; elpa-elpy (for elpy)
-;;; ccls
+;;; ccls (g++-10)
 ;;; Dependencies to be installed from pip:
 ;;; jedi flake8 autopep8 yapf black
 ;;; Code:
@@ -28,6 +28,8 @@
 (setq initial-major-mode 'org-mode)
 (setq tab-always-indent 'complete)
 (winner-mode)
+(setq read-process-output-max (* 1024 1024)) ;; 1mb
+(setq gc-cons-threshold 100000000)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -129,7 +131,6 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 ;; projectile for project management
 (use-package projectile
   :ensure t
-                                        ;  :requires counsel
   :after counsel
   :diminish projectile-mode
   :config
@@ -300,38 +301,52 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 (use-package flycheck
   :hook (prog-mode . flycheck-mode))
 
+;; Language server
+;; https://github.com/MaskRay/ccls/wiki/FAQ#some-cc-headers-are-not-recognized
+;; you have to check if the std include paths are included in the search path of clang
+;; How to do this? `clang -v -fsyntax-only -x c++ /dev/null`
+(use-package eglot
+  :ensure t
+  :config
+  ; https://github.com/MaskRay/ccls/wiki/eglot
+  (defun projectile-project-find-function (dir)
+    (let* ((root (projectile-project-root dir)))
+      (and root (cons 'transient root))))
+  (with-eval-after-load 'project
+    (add-to-list 'project-find-functions 'projectile-project-find-function))
+
+  (defun eglot-ccls-inheritance-hierarchy (&optional derived)
+    "Show inheritance hierarchy for the thing at point.
+If DERIVED is non-nil (interactively, with prefix argument), show
+the children of class at point."
+    (interactive "P")
+    (if-let* ((res (jsonrpc-request
+                    (eglot--current-server-or-lose)
+                    :$ccls/inheritance
+                    (append (eglot--TextDocumentPositionParams)
+                            `(:derived ,(if derived t :json-false))
+                            '(:levels 100) '(:hierarchy t))))
+              (tree (list (cons 0 res))))
+	(with-help-window "*ccls inheritance*"
+          (with-current-buffer standard-output
+            (while tree
+              (pcase-let ((`(,depth . ,node) (pop tree)))
+		(cl-destructuring-bind (&key uri range) (plist-get node :location)
+                  (insert (make-string depth ?\ ) (plist-get node :name) "\n")
+                  (make-text-button (+ (point-at-bol 0) depth) (point-at-eol 0)
+                                    'action `(lambda (_arg)
+                                               (interactive)
+                                               (find-file (eglot--uri-to-path ',uri))
+                                               (goto-char (car (eglot--range-region ',range)))))
+                  (cl-loop for child across (plist-get node :children)
+                           do (push (cons (1+ depth) child) tree)))))))
+      (eglot--error "Hierarchy unavailable"))))
+
 ;; C/C++ development
 (use-package cmake-mode
   :ensure t
   :mode ("CMakeLists\\.txt\\'" "\\.cmake\\'"))
 
-(use-package ccls
-  :ensure t
-  :hook
-  ((c-mode c++-mode objc-mode cuda-mode) . (lambda () (require 'ccls) (lsp)))
-  :config
-  (setq ccls-executable "/usr/bin/ccls"))
-
-;; Rust
-(use-package rustic
-  :ensure
-  :bind (:map rustic-mode-map
-              ("M-j" . lsp-ui-imenu)
-              ("M-?" . lsp-find-references)
-              ("C-c C-c l" . flycheck-list-errors)
-              ("C-c C-c a" . lsp-execute-code-action)
-              ("C-c C-c r" . lsp-rename)
-              ("C-c C-c q" . lsp-workspace-restart)
-              ("C-c C-c Q" . lsp-workspace-shutdown)
-              ("C-c C-c s" . lsp-rust-analyzer-status))
-  :config
-  ;; uncomment for less flashiness
-  ;; (setq lsp-eldoc-hook nil)
-  ;; (setq lsp-enable-symbol-highlighting nil)
-  ;; (setq lsp-signature-auto-activate nil)
-
-  ;; comment to disable rustfmt on save
-  (setq rustic-format-on-save t))
 
 ;; Python
 (use-package elpy
@@ -355,39 +370,6 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   :hook ((python-mode . anaconda-mode)
          (python-mode . anaconda-eldoc-mode)))
 
-;; LSP and Snippets
-(use-package lsp-mode
-  :ensure t
-  :commands lsp
-  :hook
-  (lsp-mode . (lambda ()
-                (let ((lsp-keymap-prefix "M-l"))
-                  (lsp-enable-which-key-integration))))
-  (lsp-mode . lsp-ui-mode)
-  :custom
-  ;; what to use when checking on-save. "check" is default, I prefer clippy
-  (lsp-rust-analyzer-cargo-watch-command "clippy")
-  (lsp-eldoc-render-all t)
-  (lsp-idle-delay 0.6)
-  ;; enable / disable the hints as you prefer:
-  (lsp-rust-analyzer-server-display-inlay-hints t)
-  (lsp-rust-analyzer-display-lifetime-elision-hints-enable "skip_trivial")
-  (lsp-rust-analyzer-display-chaining-hints t)
-  (lsp-rust-analyzer-display-lifetime-elision-hints-use-parameter-names nil)
-  (lsp-rust-analyzer-display-closure-return-type-hints t)
-  (lsp-rust-analyzer-display-parameter-hints nil)
-  (lsp-rust-analyzer-display-reborrow-hints nil)
-  :config
-  (define-key lsp-mode-map (kbd "M-l") lsp-command-map)
-  (keymap-set lsp-mode-map "C-c ?" 'lsp-ui-peek-find-references))
-
-(use-package lsp-ui
-  :ensure t
-  :commands lsp-ui-mode
-  :custom
-  (lsp-ui-peek-always-show t)
-  (lsp-ui-sideline-show-hover t)
-  (lsp-ui-doc-enable nil))
 
 (use-package yasnippet
   :ensure t
