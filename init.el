@@ -32,6 +32,8 @@
 (winner-mode)
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
 (setq gc-cons-threshold 100000000)
+(global-display-line-numbers-mode -1)
+(add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -39,7 +41,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(doom-modeline treemacs-magit all-the-icons doom-themes ox-extra ox-latex gptel expand-region virtualenvwrapper eshell-prompt-extras yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
+   '(zoom doom-modeline treemacs-magit all-the-icons doom-themes ox-extra ox-latex gptel expand-region virtualenvwrapper eshell-prompt-extras yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
  '(python-flymake-command '("pylint"))
  '(require-final-newline t)
  '(safe-local-variable-values
@@ -112,38 +114,24 @@
   (dimmer-mode t)
   (setq dimmer-fraction 0.3))
 
-(defun copy-symbol-at-point ()
-  "Copy the symbol at point to the clipboard."
-  (interactive)
-  (let ((symbol (current-word)))
-    (when symbol
-      (kill-new symbol)
-      (message "Copied symbol: %s" symbol))))
-(global-set-key (kbd "C-c c") 'copy-symbol-at-point)
-(global-set-key (kbd "C-c s") 'swiper-isearch-thing-at-point)
+(use-package zoom
+  :ensure t
+  :after which-key
+  :hook (after-init . zoom-mode)
+  :custom
+  (zoom-size '(0.618 . 0.618))
+  (zoom-ignored-major-modes '(which-key-mode))
+  :config
+  ;; ignore which key -> does not work completely TODO
+  (setq zoom-ignore-predicates
+	'((lambda ()
+	    (equal which-key-buffer-name
+		   (buffer-file-name (current-buffer)))))))
 
-;; window manipulation
-
-(defun resize-window-horizontally (direction)
-    "Resize the window horizontally.
-DIRECTION should be 1 to increase width, -1 to decrease."
-    (interactive)
-    (let ((npixels (if (eq direction -1) -5 5)))
-      (if (window-resizable (selected-window) npixels 1)
-          (adjust-window-trailing-edge (selected-window) npixels 1))))
-
-(defun my-resize-window-right ()
-  "Increase the width of the current window by 10 pixels."
-  (interactive)
-  (resize-window-horizontally 1))
-
-(defun my-resize-window-left ()
-  "Decrease the width of the current window by 10 pixels."
-  (interactive)
-  (resize-window-horizontally -1))
-
-(global-set-key (kbd "C-M-<right>") 'my-resize-window-right)
-(global-set-key (kbd "C-M-<left>") 'my-resize-window-left)
+(use-package ace-window
+  :ensure t
+  :bind (("C-x o"   . ace-window)
+         ("C-x C-o" . ace-swap-window)))
 
 (use-package expand-region
   :bind ("C-c m" . er/expand-region))
@@ -201,16 +189,16 @@ DIRECTION should be 1 to increase width, -1 to decrease."
         ("C-c t C-t" . treemacs-find-file)
         ("C-c t M-t" . treemacs-find-tag)
 	("C-0". treemacs-select-window))
+  :hook (after-init . treemacs)
   :config
   (treemacs-resize-ui (treemacs-directory-face treemacs-directory-collapsed-face treemacs-file-face treemacs-root-face
 		       treemacs-root-unreadable-face treemacs-root-remote-face treemacs-root-remote-unreadable-face
 		       treemacs-root-remote-disconnected-face treemacs-tags-face treemacs-help-title-face
 		       treemacs-help-column-face treemacs-term-node-face treemacs-on-success-pulse-face treemacs-on-failure-pulse-face
-		       treemacs-marked-file-face treemacs-fringe-indicator-face treemacs-header-button-face treemacs-git-commit-diff-face treemacs-git-ignored-face)
+		       treemacs-marked-file-face treemacs-fringe-indicator-face treemacs-header-button-face treemacs-git-commit-diff-face
+		       treemacs-git-ignored-face treemacs-git-added-face treemacs-git-modified-face treemacs-git-unmodified-face treemacs-git-untracked-face)
 		      0.9)
-  (add-hook 'treemacs-mode-hook (lambda () (display-line-numbers-mode -1)))
   (setq treemacs-width 30)
-  (treemacs)
   (treemacs-project-follow-mode 1)
   (treemacs-tag-follow-mode 1)
   (setq treemacs-tag-follow-delay 0.2)
@@ -270,11 +258,6 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   (whitespace-style '(face tabs trailing space-before-tab space-after-tab empty indentation::space))
   :config
   (global-whitespace-mode))
-
-(use-package ace-window
-  :ensure t
-  :bind (("C-x o" . ace-window)
-	 ("C-x C-o" . ace-swap-window)))
 
 (use-package undo-tree
   :bind (("C-x u" . undo-tree-visualize)) ;; Set a keybinding for undo-tree-visualize
@@ -460,7 +443,8 @@ the children of class at point."
    ("C-c g s" . gptel-send)
    ("C-c g m" . gptel-menu)
    ("C-c g a" . gptel-abort))
-  :config)
+  :config
+  (add-hook 'markdown-mode (lambda () (setq truncate-lines nil))))
 
 (provide 'init)
 ;;; init.el ends here
