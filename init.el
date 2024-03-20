@@ -334,8 +334,15 @@
   :hook
   (after-init . global-company-mode))
 
-(use-package flycheck
-  :hook (prog-mode . flycheck-mode))
+;; (use-package flycheck
+;;   :hook (prog-mode . flycheck-mode))
+
+;; use flymake as it integrates with eglot out of the box
+(use-package flymake
+  :bind (("C-c ! l" . flymake-show-buffer-diagnostics)
+	 ("C-c ! p" . flymake-show-project-diagnostics)
+	 ("C-c ! n" . flymake-next-error)
+	 ("C-c ! p" . flymake-previous-error)))
 
 ;; Language server
 ;; https://github.com/MaskRay/ccls/wiki/FAQ#some-cc-headers-are-not-recognized
@@ -375,29 +382,6 @@ the children of class at point."
 (use-package cmake-mode
   :ensure t
   :mode ("CMakeLists\\.txt\\'" "\\.cmake\\'"))
-
-
-;; Python
-(use-package elpy
-  :ensure t
-  :init
-  (elpy-enable)
-  :config
-  (setq flycheck-flake8-maximum-line-length 120)
-  (remove-hook 'elpy-modules 'elpy-module-highlight-indentation) ; who thought this abberation is useful???
-  (remove-hook 'elpy-modules 'elpy-module-flymake) ; might re-enable later if i figure out how to configure this...
-)
-
-(use-package company-jedi
-  :ensure t
-  :config
-  (add-to-list 'company-backends 'company-jedi)
-)
-
-(use-package anaconda-mode
-  :ensure t
-  :hook ((python-mode . anaconda-mode)
-         (python-mode . anaconda-eldoc-mode)))
 
 ;; Groovy
 (use-package groovy-mode
