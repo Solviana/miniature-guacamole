@@ -240,6 +240,7 @@
 ;; for pair management e.g. quotes, parentheses
 (use-package smartparens
   :ensure t
+  :demand t
   :diminish smartparens-mode
   :config
   (require 'smartparens-config) ; default config
