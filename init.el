@@ -168,12 +168,6 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 ; this works only if fdfind is installed
   (setq-default projectile-git-fd-args "-H -0 --strip-cwd-prefix --no-ignore -E .git -tf -c never")
   (projectile-mode +1)
-    ; https://github.com/MaskRay/ccls/wiki/eglot
-  (defun projectile-project-find-function (dir)
-    (let* ((root (projectile-project-root dir)))
-      (and root (cons 'transient root))))
-  (with-eval-after-load 'project
-    (add-to-list 'project-find-functions 'projectile-project-find-function))
   :bind (("C-c p p"   . projectile-switch-project)
             ("C-c p f"   . projectile-find-file)
             ("C-c p s g" . projectile-grep)
@@ -188,6 +182,13 @@ DIRECTION should be 1 to increase width, -1 to decrease."
             ("C-c p k"   . projectile-kill-buffers)
             ("C-c p i"   . projectile-invalidate-cache)))
 
+(defmacro treemacs-resize-ui (faces size)
+  "Resizes all faces to size"
+    `(progn
+     ,@(mapcar (lambda (face)
+                 `(set-face-attribute ',face nil :height ,size))
+               faces)))
+
 (use-package treemacs
   :ensure t
   :demand t
@@ -201,18 +202,28 @@ DIRECTION should be 1 to increase width, -1 to decrease."
         ("C-c t M-t" . treemacs-find-tag)
 	("C-0". treemacs-select-window))
   :config
+  (treemacs-resize-ui (treemacs-directory-face treemacs-directory-collapsed-face treemacs-file-face treemacs-root-face
+		       treemacs-root-unreadable-face treemacs-root-remote-face treemacs-root-remote-unreadable-face
+		       treemacs-root-remote-disconnected-face treemacs-tags-face treemacs-help-title-face
+		       treemacs-help-column-face treemacs-term-node-face treemacs-on-success-pulse-face treemacs-on-failure-pulse-face
+		       treemacs-marked-file-face treemacs-fringe-indicator-face treemacs-header-button-face treemacs-git-commit-diff-face treemacs-git-ignored-face)
+		      0.9)
   (add-hook 'treemacs-mode-hook (lambda () (display-line-numbers-mode -1)))
+  (setq treemacs-width 30)
   (treemacs)
-  (treemacs-tag-follow-mode t)
+  (treemacs-project-follow-mode 1)
+  (treemacs-tag-follow-mode 1)
   (setq treemacs-tag-follow-delay 0.2)
   (setq treemacs-file-follow-delay 0.2))
 
 (use-package treemacs-projectile
   :after (treemacs projectile)
+  :demand t
   :ensure t)
 
 (use-package treemacs-magit
   :after (treemacs magit)
+  :demand t
   :ensure t)
 
 ;; ripgrep for searching
