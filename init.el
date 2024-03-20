@@ -141,6 +141,10 @@
   ; You can set a default search engine here. This example uses Google.
   (setq eww-search-prefix "https://www.google.com/search?q="))
 
+;; Remote access
+(use-package tramp
+  :ensure t)
+
 ;; projectile for project management
 (use-package projectile
   :ensure t
@@ -330,7 +334,7 @@
   :diminish company-mode
   :config
   (setq company-minimum-prefix-length 2)
-  (setq company-idle-delay 0.5)
+  (setq company-idle-delay 0.25)
   :hook
   (after-init . global-company-mode))
 
