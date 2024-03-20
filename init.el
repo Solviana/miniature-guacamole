@@ -16,7 +16,6 @@
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
 (set-face-attribute 'default nil :font "Fantasque Sans Mono")
-(global-display-line-numbers-mode)
 (show-paren-mode)
 (display-time-mode)
 (setq indent-tabs-mode nil)
@@ -32,7 +31,6 @@
 (winner-mode)
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
 (setq gc-cons-threshold 100000000)
-(global-display-line-numbers-mode -1)
 (add-hook 'prog-mode-hook #'display-line-numbers-mode)
 
 (custom-set-variables
@@ -200,7 +198,6 @@
 		      0.9)
   (setq treemacs-width 30)
   (treemacs-project-follow-mode 1)
-  (treemacs-tag-follow-mode 1)
   (setq treemacs-tag-follow-delay 0.2)
   (setq treemacs-file-follow-delay 0.2))
 
@@ -427,11 +424,6 @@ the children of class at point."
     ;; Set the prompt to use epe-theme, you can change the theme as desired
     (setq eshell-highlight-prompt nil
           eshell-prompt-function 'epe-theme-multiline-with-status)))
-
-(defcustom gptel-maximum-column-width 100
-  "Maximum width of chatgpt responses."
-  :type 'integer
-  :group 'gptel)
 
 ;; AI chatbots
 (use-package gptel
