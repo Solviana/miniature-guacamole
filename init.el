@@ -21,7 +21,8 @@
 (setq indent-tabs-mode nil)
 (setq-default cmake-tab-width 4)
 (setq-default truncate-lines t)
-(set-face-attribute 'default nil :height 160)
+(set-face-attribute 'default nil :height 150)
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
 (fset 'yes-or-no-p 'y-or-n-p)
 (setq-default c-basic-offset 4)
 (setq require-final-newline t)
@@ -37,7 +38,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(gptel expand-region virtualenvwrapper eshell-prompt-extras yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
+   '(doom-modeline treemacs-magit all-the-icons doom-themes ox-extra ox-latex gptel expand-region virtualenvwrapper eshell-prompt-extras yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
  '(python-flymake-command '("pylint"))
  '(require-final-newline t)
  '(safe-local-variable-values
@@ -72,10 +73,34 @@
 (setq use-package-always-ensure t)
 
 ;; UI improvements
-(use-package monokai-theme
+(use-package all-the-icons
+  :ensure t)
+
+(use-package nerd-icons
+  :ensure t)
+
+(use-package doom-themes
   :ensure t
   :config
-  (load-theme 'monokai t))
+  ;; Global settings (defaults)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-acario-dark t)
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  
+  (doom-themes-neotree-config)
+  ;; or for treemacs users
+  (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+
+(use-package doom-modeline
+  :ensure t
+  :init (doom-modeline-mode 1))
 
 (use-package dimmer
   :ensure t
@@ -133,6 +158,7 @@ DIRECTION should be 1 to increase width, -1 to decrease."
   :ensure t
   :after counsel
   :diminish projectile-mode
+  :demand t
   :config
   (setq projectile-project-search-path '("~/" "~/repos"))
   (setq projectile-enable-caching t)
@@ -140,6 +166,12 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 ; this works only if fdfind is installed
   (setq-default projectile-git-fd-args "-H -0 --strip-cwd-prefix --no-ignore -E .git -tf -c never")
   (projectile-mode +1)
+    ; https://github.com/MaskRay/ccls/wiki/eglot
+  (defun projectile-project-find-function (dir)
+    (let* ((root (projectile-project-root dir)))
+      (and root (cons 'transient root))))
+  (with-eval-after-load 'project
+    (add-to-list 'project-find-functions 'projectile-project-find-function))
   :bind (("C-c p p"   . projectile-switch-project)
             ("C-c p f"   . projectile-find-file)
             ("C-c p s g" . projectile-grep)
@@ -156,7 +188,7 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 
 (use-package treemacs
   :ensure t
-  :defer t
+  :demand t
   :bind
   (:map global-map
         ("C-c t 1"   . treemacs-delete-other-windows)
@@ -164,10 +196,21 @@ DIRECTION should be 1 to increase width, -1 to decrease."
         ("C-c t d"   . treemacs-select-directory)
         ("C-c t B"   . treemacs-bookmark)
         ("C-c t C-t" . treemacs-find-file)
-        ("C-c t M-t" . treemacs-find-tag)))
+        ("C-c t M-t" . treemacs-find-tag)
+	("C-0". treemacs-select-window))
+  :config
+  (add-hook 'treemacs-mode-hook (lambda () (display-line-numbers-mode -1)))
+  (treemacs)
+  (treemacs-tag-follow-mode t)
+  (setq treemacs-tag-follow-delay 0.2)
+  (setq treemacs-file-follow-delay 0.2))
 
 (use-package treemacs-projectile
   :after (treemacs projectile)
+  :ensure t)
+
+(use-package treemacs-magit
+  :after (treemacs magit)
   :ensure t)
 
 ;; ripgrep for searching
@@ -204,8 +247,8 @@ DIRECTION should be 1 to increase width, -1 to decrease."
         sp-show-pair-from-inside t
         sp-cancel-autoskip-on-backward-movement nil)
   :bind (:map prog-mode-map
-                ("M-<right>" . sp-forward-slurp-sexp)
-                ("M-<left>" . sp-forward-barf-sexp)))
+              ("M-<right>" . sp-forward-slurp-sexp)
+              ("M-<left>" . sp-forward-barf-sexp)))
 
 (use-package whitespace
   :ensure t
@@ -308,13 +351,6 @@ DIRECTION should be 1 to increase width, -1 to decrease."
 (use-package eglot
   :ensure t
   :config
-  ; https://github.com/MaskRay/ccls/wiki/eglot
-  (defun projectile-project-find-function (dir)
-    (let* ((root (projectile-project-root dir)))
-      (and root (cons 'transient root))))
-  (with-eval-after-load 'project
-    (add-to-list 'project-find-functions 'projectile-project-find-function))
-
   (defun eglot-ccls-inheritance-hierarchy (&optional derived)
     "Show inheritance hierarchy for the thing at point.
 If DERIVED is non-nil (interactively, with prefix argument), show
