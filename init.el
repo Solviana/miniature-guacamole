@@ -340,9 +340,9 @@
 ;; use flymake as it integrates with eglot out of the box
 (use-package flymake
   :bind (("C-c ! l" . flymake-show-buffer-diagnostics)
-	 ("C-c ! p" . flymake-show-project-diagnostics)
-	 ("C-c ! n" . flymake-next-error)
-	 ("C-c ! p" . flymake-previous-error)))
+	 ("C-c ! d" . flymake-show-project-diagnostics)
+	 ("C-c ! n" . flymake-goto-next-error)
+	 ("C-c ! p" . flymake-goto-prev-error)))
 
 ;; Language server
 ;; https://github.com/MaskRay/ccls/wiki/FAQ#some-cc-headers-are-not-recognized
@@ -382,6 +382,10 @@ the children of class at point."
 (use-package cmake-mode
   :ensure t
   :mode ("CMakeLists\\.txt\\'" "\\.cmake\\'"))
+
+;; Python development
+(use-package pyvenv
+  :ensure t)
 
 ;; Groovy
 (use-package groovy-mode
