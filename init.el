@@ -7,6 +7,7 @@
 ;;; ripgrep (for projectile)
 ;;; elpa-elpy (for elpy)
 ;;; ccls (g++-10)
+;;; Fantasque Sans Mono
 ;;; Dependencies to be installed from pip:
 ;;; jedi flake8 autopep8 yapf black
 ;;; Code:
@@ -14,14 +15,14 @@
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
-(set-face-attribute 'default nil :font "Monospace-10")
+(set-face-attribute 'default nil :font "Fantasque Sans Mono")
 (global-display-line-numbers-mode)
 (show-paren-mode)
 (display-time-mode)
 (setq indent-tabs-mode nil)
 (setq-default cmake-tab-width 4)
 (setq-default truncate-lines t)
-(set-face-attribute 'default nil :height 150)
+(set-face-attribute 'default nil :height 120)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 (fset 'yes-or-no-p 'y-or-n-p)
 (setq-default c-basic-offset 4)
@@ -81,11 +82,12 @@
 
 (use-package doom-themes
   :ensure t
+  :after treemacs
   :config
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-acario-dark t)
+  (load-theme 'doom-city-lights t)
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
@@ -108,7 +110,7 @@
   (dimmer-configure-which-key)
   (dimmer-configure-helm)
   (dimmer-mode t)
-  (setq dimmer-fraction 0.35))
+  (setq dimmer-fraction 0.3))
 
 (defun copy-symbol-at-point ()
   "Copy the symbol at point to the clipboard."
@@ -406,6 +408,10 @@ the children of class at point."
   :hook ((python-mode . anaconda-mode)
          (python-mode . anaconda-eldoc-mode)))
 
+;; Groovy
+(use-package groovy-mode
+  :ensure t
+  :mode "\\.groovy\\'")
 
 (use-package yasnippet
   :ensure t
