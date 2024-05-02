@@ -1,5 +1,11 @@
 ;;; init.el --- an ugly emacs config by Solviana
 ;;; Commentary:
+;;; Required emacs features (emacs has to be compiled with this):
+;;; svg support (for modeline + treemacs)
+;;; xml support (for eww)
+;;; lijansson (for lsp speed)
+;;; native compilation (https://www.masteringemacs.org/article/speed-up-emacs-libjansson-native-elisp-compilation)
+;;;
 ;;; Dependencies to be installed from apt:
 ;;; fd-find (for projectile)
 ;;; pylint (for flymake)
@@ -8,9 +14,18 @@
 ;;; elpa-elpy (for elpy)
 ;;; ccls (g++-10)
 ;;; Fantasque Sans Mono
+;;;
 ;;; Dependencies to be installed from pip:
-;;; jedi flake8 autopep8 yapf black
+;;; jedi flake8 autopep8 yapf black cppman
+;;;
+;;; Man + CPP integration:
+;;; `cppman -s cppreference.com -c`
+;;; `cppman -m true`
+;;; Find the created man pages and add them to MANPATH
+;;; run mandb
+;;;
 ;;; Code:
+
 (setq inhibit-startup-screen t)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
@@ -20,8 +35,8 @@
 (display-time-mode)
 (setq indent-tabs-mode nil)
 (setq-default cmake-tab-width 4)
-(setq-default truncate-lines t)
-(set-face-attribute 'default nil :height 120)
+(setq-default truncate-lines nil)
+(set-face-attribute 'default nil :height 170)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 (fset 'yes-or-no-p 'y-or-n-p)
 (setq-default c-basic-offset 4)
@@ -38,8 +53,10 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(compilation-scroll-output 'first-error)
+ '(org-duration-format '(("h") (special . h:mm)))
  '(package-selected-packages
-   '(zoom doom-modeline treemacs-magit all-the-icons doom-themes ox-extra ox-latex gptel expand-region virtualenvwrapper eshell-prompt-extras yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
+   '(breadcrumb zoom doom-modeline treemacs-magit all-the-icons doom-themes ox-extra ox-latex gptel expand-region virtualenvwrapper eshell-prompt-extras yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
  '(python-flymake-command '("pylint"))
  '(require-final-newline t)
  '(safe-local-variable-values
@@ -219,11 +236,12 @@
 (use-package rg
   :ensure t)
 
-;; ivy for autocompletion
+;; ivy for minibuffer autocompletion
 (use-package counsel
   :ensure t
   :demand t
   :config
+  (ivy-mode)
   (setq ivy-use-virtual-buffers t)
   (setq ivy-count-format "(%d/%d)")
   (setq projectile-completion-system 'ivy)
@@ -235,7 +253,8 @@
             ("C-c v"   . ivy-push-view)
             ("C-c V"   . ivy-pop-view)
             ("C-h f"   . counsel-describe-function)
-            ("C-h v"   . counsel-describe-variable)))
+            ("C-h v"   . counsel-describe-variable)
+	    ("M-g i"   . counsel-imenu)))
 
 ;; for pair management e.g. quotes, parentheses
 (use-package smartparens
@@ -284,7 +303,8 @@
   (which-key-add-key-based-replacements "C-c t" "treemacs")
   (which-key-add-keymap-based-replacements prog-mode-map "C-c !" "linter")
   (which-key-add-key-based-replacements "C-c g" "ChatGPT")
-  (which-key-add-key-based-replacements "C-x n" "narrow"))
+  (which-key-add-key-based-replacements "C-x n" "narrow")
+  (which-key-add-key-based-replacements "C-c &" "yasnippet"))
 
 ;; Org-mode setup
 (use-package org
@@ -294,22 +314,8 @@
   (require 'ox-latex)
   (setq org-clock-persist 'history)
   (org-clock-persistence-insinuate)
-  (defun org-sum-subtask-effort ()
-  "Sum the efforts of all subtasks and set the effort of the parent task."
-  (interactive)
-  (save-excursion
-    (when (org-before-first-heading-p) (error "Not inside a heading"))
-    (let ((total-minutes 0))
-      (org-up-heading-safe)
-      (org-map-entries
-       (lambda ()
-         (let ((effort (org-entry-get nil "Effort")))
-           (when effort
-             (let ((minutes (org-duration-to-minutes effort)))
-               (setq total-minutes (+ total-minutes minutes))))))
-       "Effort>\"\"" 'tree)
-      (org-set-property "Effort"
-                        (org-minutes-to-clocksum-string total-minutes)))))
+  (setq org-todo-keywords
+      '((sequence "TODO" "ONGOING" "WAITING" "|" "DONE" "CANCELLED")))
   :custom
   (org-agenda-files '("~/proj/todo"))
   (org-agenda-window-setup 'only-window)
@@ -383,6 +389,10 @@ the children of class at point."
                            do (push (cons (1+ depth) child) tree)))))))
       (eglot--error "Hierarchy unavailable"))))
 
+(use-package breadcrumb
+  :ensure t
+  :hook (prog-mode . breadcrumb-mode))
+
 ;; C/C++ development
 (use-package cmake-mode
   :ensure t
@@ -399,17 +409,37 @@ the children of class at point."
 
 (use-package yasnippet
   :ensure t
-  :hook
-  ((c-mode c++-mode python-mode) . yas-minor-mode))
+  :demand t
+  :config
+  (yas-global-mode 1))
 
 (use-package yasnippet-snippets
   :ensure t
   :after yasnippet)
 
 ;; Shell improvements
+(use-package ansi-color
+  :ensure t
+  :demand t
+  :config
+  (defun my-colorize-compilation-buffer ()
+  (when (eq major-mode 'compilation-mode)
+    (ansi-color-apply-on-region compilation-filter-start (point-max))))
+
+  (add-hook 'compilation-filter-hook 'my-colorize-compilation-buffer))
+
+
 (use-package eshell-prompt-extras
   :ensure t
   :config
+  ;; handle ansi escape codes... thi probably belongs somewhere else
+  ;; ROOM FOR IMPROVEMENT
+  (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
+  (add-to-list 'comint-output-filter-functions 'ansi-color-process-output)
+  (add-hook 'eshell-preoutput-filter-functions
+            'ansi-color-filter-apply)
+  (add-hook 'eshell-preoutput-filter-functions
+            'ansi-color-apply)
   (with-eval-after-load "esh-opt"
     ;; Load eshell-prompt-extras
     (require 'virtualenvwrapper)
