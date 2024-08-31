@@ -316,7 +316,7 @@
          ("C-c M-x" . consult-mode-command)
          ("C-c h" . consult-history)
          ("C-c k" . consult-kmacro)
-         ("C-c m" . consult-man)
+         ;("C-c m" . consult-man)
          ("C-c i" . consult-info)
          ([remap Info-search] . consult-info)
          ;; C-x bindings in `ctl-x-map'
@@ -335,7 +335,7 @@
          ("M-y" . consult-yank-pop)                ;; orig. yank-pop
          ;; M-g bindings in `goto-map'
          ("M-g e" . consult-compile-error)
-         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ;; ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
          ("M-g g" . consult-goto-line)             ;; orig. goto-line
          ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
          ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
@@ -511,7 +511,8 @@
   :bind (("C-c ! l" . flymake-show-buffer-diagnostics)
 	 ("C-c ! d" . flymake-show-project-diagnostics)
 	 ("C-c ! n" . flymake-goto-next-error)
-	 ("C-c ! p" . flymake-goto-prev-error)))
+	 ("C-c ! p" . flymake-goto-prev-error)
+	 ("C-c ! s" . consult-flymake)))
 
 ;; Language server
 ;; https://github.com/MaskRay/ccls/wiki/FAQ#some-cc-headers-are-not-recognized
