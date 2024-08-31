@@ -163,9 +163,11 @@
   :ensure t)
 
 ;; projectile for project management
+;; TODO: check if project.el can fulfill the same functionality
+;; e.g.: configurable find file command to index gitignored files as well
 (use-package projectile
   :ensure t
-  :after counsel
+  :after consult
   :diminish projectile-mode
   :demand t
   :config
