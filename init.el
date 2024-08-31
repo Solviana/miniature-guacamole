@@ -91,12 +91,6 @@
 (setq use-package-always-ensure t)
 
 ;; UI improvements
-(use-package all-the-icons
-  :ensure t)
-
-(use-package nerd-icons
-  :ensure t)
-
 (use-package doom-themes
   :ensure t
   :after treemacs
@@ -121,6 +115,29 @@
   :ensure t
   :init (doom-modeline-mode 1))
 
+(use-package all-the-icons
+  :ensure t)
+
+(use-package nerd-icons
+  :ensure t)
+
+(use-package page-break-lines
+  :ensure t)
+
+(use-package dashboard
+  :ensure t
+  :config
+  (setq dashboard-startup-banner 'logo)
+  (setq dashboard-items '((projects  . 5)
+			(recents   . 5)
+                        (agenda    . 5)))
+  (setq dashboard-icon-type 'all-the-icons)
+  (setq dashboard-center-content t)
+  (setq dashboard-display-icons-p t)
+  (setq dashboard-vertically-center-content t)
+  ;(setq dashboard-set-heading-icons t)
+  (dashboard-setup-startup-hook))
+
 (use-package dimmer
   :ensure t
   :config
@@ -143,15 +160,24 @@
 	    (equal which-key-buffer-name
 		   (buffer-file-name (current-buffer)))))))
 
-;; nice command buffer in the middle of the screen
 (use-package vertico-posframe
   :ensure t
   :after vertico
-  :init (vertico-posframe-mode 1)
+;  :init (vertico-posframe-mode 1)
   :custom
   (vertico-posframe-min-width 150)
   (vertico-posframe-parameters '((left-fringe . 8)
-                                 (right-fringe . 8))))
+                                 (right-fringe . 8)))
+  (vertico-multiform-commands
+	'((consult-line
+           posframe
+         (vertico-posframe-poshandler . posframe-poshandler-frame-bottom-center)
+         (vertico-posframe-border-width . 10)
+         (vertico-posframe-fallback-mode . vertico-buffer-mode))))
+  (vertico-multiform-categories '((consult-grep buffer)
+				  (t posframe)))
+  :config
+  (vertico-multiform-mode 1))
 
 (use-package ace-window
   :ensure t
@@ -217,7 +243,7 @@
         ("C-c t C-t" . treemacs-find-file)
         ("C-c t M-t" . treemacs-find-tag)
 	("C-0". treemacs-select-window))
-  :hook (after-init . treemacs)
+;;  :hook (after-init . treemacs)
   :config
   (treemacs-resize-ui (treemacs-directory-face treemacs-directory-collapsed-face treemacs-file-face treemacs-root-face
 		       treemacs-root-unreadable-face treemacs-root-remote-face treemacs-root-remote-unreadable-face
