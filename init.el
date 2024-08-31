@@ -147,7 +147,11 @@
 (use-package vertico-posframe
   :ensure t
   :after vertico
-  :init (vertico-posframe-mode 1))
+  :init (vertico-posframe-mode 1)
+  :custom
+  (vertico-posframe-min-width 150)
+  (vertico-posframe-parameters '((left-fringe . 8)
+                                 (right-fringe . 8))))
 
 (use-package ace-window
   :ensure t
@@ -183,12 +187,9 @@
 ; this works only if fdfind is installed
   (setq-default projectile-git-fd-args "-H -0 --strip-cwd-prefix --no-ignore -E .git -tf -c never")
   (projectile-mode +1)
-  :bind    (("C-c p p"   . projectile-switch-project)
-            ("C-c p f"   . projectile-find-file)
-            ("C-c p s g" . projectile-grep)
+  :bind    (("C-c p s g" . projectile-grep)
             ("C-c p s r" . projectile-ripgrep)
-            ("C-c p s s" . projectile-ag)
-            ("C-c p d"   . projectile-dired)
+            ("C-c p s s" . projectile-ag) ; search commands moved to consul and M-s
             ("C-c p c"   . projectile-compile-project)
             ("C-c p C"   . projectile-configure-project)
             ("C-c p u"   . projectile-run-project)
@@ -413,6 +414,14 @@
   ;; You may want to use `embark-prefix-help-command' or which-key instead.
   ;; (keymap-set consult-narrow-map (concat consult-narrow-key " ?") #'consult-narrow-help)
 )
+
+(use-package consult-projectile
+  :ensure t
+  :after projectile
+  :config
+  :bind    (("C-c p p"   . consult-projectile-switch-project)
+            ("C-c p f"   . consult-projectile-find-file)
+            ("C-c p d"   . consult-projectile-find-dir)))
 
 ;; for pair management e.g. quotes, parentheses
 (use-package smartparens
