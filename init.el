@@ -143,6 +143,12 @@
 	    (equal which-key-buffer-name
 		   (buffer-file-name (current-buffer)))))))
 
+;; nice command buffer in the middle of the screen
+(use-package vertico-posframe
+  :ensure t
+  :after vertico
+  :init (vertico-posframe-mode 1))
+
 (use-package ace-window
   :ensure t
   :bind (("C-x o"   . ace-window)
