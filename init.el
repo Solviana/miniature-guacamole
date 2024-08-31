@@ -402,6 +402,9 @@ the children of class at point."
 (use-package pyvenv
   :ensure t)
 
+(use-package poetry
+  :ensure t)
+
 ;; Groovy
 (use-package groovy-mode
   :ensure t
