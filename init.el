@@ -36,10 +36,12 @@
 (setq indent-tabs-mode nil)
 (setq-default cmake-tab-width 4)
 (setq-default truncate-lines nil)
-(set-face-attribute 'default nil :height 170)
+(setq-default c-default-style "bsd")
+(setq-default tab-width 4)
+(setq-default c-basic-offset 4)
+(set-face-attribute 'default nil :height 150)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 (fset 'yes-or-no-p 'y-or-n-p)
-(setq-default c-basic-offset 4)
 (setq require-final-newline t)
 (setq initial-major-mode 'org-mode)
 (setq tab-always-indent 'complete)
@@ -56,7 +58,7 @@
  '(compilation-scroll-output 'first-error)
  '(org-duration-format '(("h") (special . h:mm)))
  '(package-selected-packages
-   '(breadcrumb zoom doom-modeline treemacs-magit all-the-icons doom-themes ox-extra ox-latex gptel expand-region virtualenvwrapper eshell-prompt-extras yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit anaconda-mode company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
+   '(page-break-lines dashboard consult-projectile vertico-posframe consult marginalia orderless vertico poetry breadcrumb zoom doom-modeline treemacs-magit all-the-icons doom-themes ox-extra ox-latex gptel expand-region virtualenvwrapper eshell-prompt-extras yasnippet-snippets yasnipet treemacs-projectile treemacs ccls ag yaml-mode eww-lnum ace-window magit company-jedi elpy undo-tree flycheck lsp-ui lsp-mode rustic rust-mode which-key use-package smartparens rg projectile monokai-theme counsel company cmake-mode))
  '(python-flymake-command '("pylint"))
  '(require-final-newline t)
  '(safe-local-variable-values
@@ -103,7 +105,6 @@
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
   ;; Enable custom neotree theme (all-the-icons must be installed!)
-  
   (doom-themes-neotree-config)
   ;; or for treemacs users
   (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
@@ -144,7 +145,7 @@
   (dimmer-configure-which-key)
   (dimmer-configure-helm)
   (dimmer-mode t)
-  (setq dimmer-fraction 0.3))
+  (setq dimmer-fraction 0.4))
 
 (use-package zoom
   :ensure t
@@ -163,17 +164,27 @@
 (use-package vertico-posframe
   :ensure t
   :after vertico
-;  :init (vertico-posframe-mode 1)
+					;  :init (vertico-posframe-mode 1)
   :custom
   (vertico-posframe-min-width 150)
   (vertico-posframe-parameters '((left-fringe . 8)
                                  (right-fringe . 8)))
   (vertico-multiform-commands
-	'((consult-line
-           posframe
-         (vertico-posframe-poshandler . posframe-poshandler-frame-bottom-center)
-         (vertico-posframe-border-width . 10)
-         (vertico-posframe-fallback-mode . vertico-buffer-mode))))
+   '((consult-line
+      posframe
+      (vertico-posframe-poshandler . posframe-poshandler-frame-bottom-center)
+      (vertico-posframe-border-width . 10)
+      (vertico-posframe-fallback-mode . vertico-buffer-mode))
+     (consult-imenu
+      posframe
+      (vertico-posframe-poshandler . posframe-poshandler-frame-bottom-center)
+      (vertico-posframe-border-width . 10)
+      (vertico-posframe-fallback-mode . vertico-buffer-mode))
+     (xref-find-apropos
+      posframe
+      (vertico-posframe-poshandler . posframe-poshandler-frame-bottom-center)
+      (vertico-posframe-border-width . 10)
+      (vertico-posframe-fallback-mode . vertico-buffer-mode))))
   (vertico-multiform-categories '((consult-grep buffer)
 				  (t posframe)))
   :config
@@ -216,6 +227,7 @@
   :bind    (("C-c p s g" . projectile-grep)
             ("C-c p s r" . projectile-ripgrep)
             ("C-c p s s" . projectile-ag) ; search commands moved to consul and M-s
+			("C-c p e"   . projectile-run-eshell)
             ("C-c p c"   . projectile-compile-project)
             ("C-c p C"   . projectile-configure-project)
             ("C-c p u"   . projectile-run-project)
@@ -223,6 +235,8 @@
             ("C-c p r"   . projectile-find-references)
             ("C-c p k"   . projectile-kill-buffers)
             ("C-c p i"   . projectile-invalidate-cache)))
+
+(use-package ag)
 
 (defmacro treemacs-resize-ui (faces size)
   "Resizes all faces to size"
